@@ -7,9 +7,9 @@ from datetime import datetime, timedelta
 from pytz import timezone
 
 # Replace these with your API connection info from the dashboard
-base_url = 'Your API URL'
-api_key_id = 'Your API Key'
-api_secret = 'Your API Secret'
+base_url = 'https://paper-api.alpaca.markets'
+api_key_id = 'PKFJXDVKD1LK2F3JGWH9'
+api_secret = '8aUP4cGiK3NWKyQBRcAhFwAlIjeK3hVgXvm0Gtr9'
 
 api = tradeapi.REST(
     base_url=base_url,
@@ -21,7 +21,7 @@ session = requests.session()
 
 # We only consider stocks with per-share prices inside this range
 min_share_price = 2.0
-max_share_price = 13.0
+max_share_price = 3.0
 # Minimum previous-day dollar volume for a stock we might consider
 min_last_dv = 500000
 # Stop limit to default to
@@ -35,8 +35,10 @@ def get_1000m_history_data(symbols):
     minute_history = {}
     c = 0
     for symbol in symbols:
-        minute_history[symbol] = api.polygon.historic_agg(
-            size="minute", symbol=symbol, limit=1000
+#        minute_history[symbol] = api.polygon.historic_agg(
+        minute_history[symbol] = api.get_barset(
+#            size="minute", symbol=symbol, limit=1000
+            symbol, "minute", 1000
         ).df
         c += 1
         print('{}/{}'.format(c, len(symbols)))
@@ -114,6 +116,9 @@ def run(tickers, market_open_dt, market_close_dt):
     # Keep track of what we're buying/selling
     target_prices = {}
     partial_fills = {}
+
+#debug code
+    print("Got to line 121 \n")
 
     # Use trade updates to keep track of our portfolio
     @conn.on(r'trade_update')
@@ -354,6 +359,7 @@ def run(tickers, market_open_dt, market_close_dt):
         symbol_channels = ['A.{}'.format(symbol), 'AM.{}'.format(symbol)]
         channels += symbol_channels
     print('Watching {} symbols.'.format(len(symbols)))
+    print('Here are our symbols \n' + str(symbols))
     run_ws(conn, channels)
 
 
